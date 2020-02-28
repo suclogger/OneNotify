@@ -1,7 +1,7 @@
 Package: ca.menushka.onenotify
 Name: OneNotify
 Depends: mobilesubstrate, applist, ws.hbang.common (>= 1.13)
-Version: 1.3.1
+Version: 1.3.2-cephei
 Architecture: iphoneos-arm
 Description: Keep all your notifications in one persistent list on your lockscreen without having to swipe to view them.
 Maintainer: Menushka Weeratunga
