@@ -1,4 +1,4 @@
-#import <MenushkaPrefs/MenushkaPrefs.h>
+#import <Cephei/HBPreferences.h>
 #import <UIKit/UIKit.h>
 
 #define kCFCoreFoundationVersion_iOS_13 1665
@@ -8,6 +8,7 @@ BOOL prefHideTextNotificationCenter;
 BOOL prefHideTextNoOlderNotifications;
 BOOL prefPullToDismissEnabled;
 BOOL prefPullToDismissAmount;
+BOOL prefPullToDismissFeedback;
 BOOL prefBlockScreenWakeEnabled;
 NSMutableDictionary *prefBlockScreenWakeSelectedApps;
 NSInteger prefBlockScreenWakeSelectionMode;
@@ -60,7 +61,6 @@ NCNotificationStructuredListViewController *combinedList;
 
 int pullToDismissAmount = 100;
 BOOL dismiss = NO;
-
 %group OneNotifyEnabled
 
 %hook NCNotificationListCollectionView
@@ -218,9 +218,11 @@ BOOL dismiss = NO;
 
 %new
 - (void)kn_dismissAllNotifications:(UIScrollView *)scrollView {
-	UIImpactFeedbackGenerator *myGen = [[UIImpactFeedbackGenerator alloc] initWithStyle:(UIImpactFeedbackStyleHeavy)];
-	[myGen impactOccurred];
-	myGen = NULL;
+	if (prefPullToDismissFeedback) {
+		UIImpactFeedbackGenerator *myGen = [[UIImpactFeedbackGenerator alloc] initWithStyle:(UIImpactFeedbackStyleHeavy)];
+		[myGen impactOccurred];
+		myGen = NULL;
+	}
 
 	float scrollHeight = scrollView.contentOffset.y;
 	[self.incomingSectionList clearAllNotificationRequests];
@@ -251,16 +253,17 @@ BOOL dismiss = NO;
 %end
 
 void loadPrefs() {
-	MenushkaPrefs *prefs = [MenushkaPrefs getPrefs:@"ca.menushka.onenotify.preferences"];
+	HBPreferences *prefs = [[HBPreferences alloc] initWithIdentifier:@"ca.menushka.onenotify.preferences"];
 
 	prefEnabled = [prefs boolForKey:@"enabled" default:YES];
 	prefHideTextNotificationCenter = [prefs boolForKey:@"hideTextNotificationCenter" default:YES];
 	prefHideTextNoOlderNotifications = [prefs boolForKey:@"hideTextNoOlderNotifications" default:YES];
 	prefPullToDismissEnabled = [prefs boolForKey:@"pullToDismissEnabled" default:YES];
 	prefPullToDismissAmount = [prefs floatForKey:@"pullToDismissAmount" default:100];
+	prefPullToDismissFeedback = [prefs boolForKey:@"pullToDismissFeedback" default:YES];
 	prefBlockScreenWakeEnabled = [prefs boolForKey:@"blockScreenWakeEnabled" default:YES];
 	prefBlockScreenWakeSelectedApps = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/ca.menushka.onenotify.preferences.app.plist"];
-	prefBlockScreenWakeSelectionMode = [prefs intForKey:@"blockScreenWakeSelectionMode" default:0];
+	prefBlockScreenWakeSelectionMode = [prefs integerForKey:@"blockScreenWakeSelectionMode" default:0];
 }
 
 %ctor {
